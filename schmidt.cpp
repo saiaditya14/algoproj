@@ -94,16 +94,7 @@ bool is_proc(int u, int v) {
 }
 
 bool is_same_component(int u, int v) {
-    set<int> comps_u;
-    for(auto& comp : bicomponents[u]) {
-        comps_u.insert(comp.se);
-    }
-    
-    for(auto& comp : bicomponents[v]) {
-        if(comps_u.count(comp.se)) {
-            return true;
-        }
-    }
+    if(vis_time[u]==vis_time[v]) return true;
     return false;
 }
 
