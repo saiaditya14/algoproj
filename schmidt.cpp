@@ -16,7 +16,7 @@ const int MODa = 1e9 + 7;
 const int MOD = 998244353;
 const int N = 1e6 + 5;
 
-int n, m, tin[N];
+int n, m, tin[N], timer = 0, vis_time[N];
 bool vis[N];
 vi g[N], euler;
 vector<pi> bicomponents[N];
@@ -79,8 +79,10 @@ void add_edge(int u, int v, int id) {
         proc[u].pb(false);
     proc[u][v - u] = true;
     
-    bicomponents[u].pb(mp(v, id));
-    bicomponents[v].pb(mp(u, id));
+    if(id >= 0) {
+        bicomponents[u].pb(mp(v, id));
+        bicomponents[v].pb(mp(u, id));
+    }
 }
 
 bool is_proc(int u, int v) {
@@ -91,9 +93,24 @@ bool is_proc(int u, int v) {
     return proc[u][v - u];
 }
 
+bool is_same_component(int u, int v) {
+    set<int> comps_u;
+    for(auto& comp : bicomponents[u]) {
+        comps_u.insert(comp.se);
+    }
+    
+    for(auto& comp : bicomponents[v]) {
+        if(comps_u.count(comp.se)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void biconn() {
     for(int i = 1; i <= n; ++i) {
         proc[i].clear();
+        vis_time[i] = 0;
     }
     
     for(int st = 1; st <= n; ++st) {
@@ -101,9 +118,7 @@ void biconn() {
             euler.clear();
             dfs(st, 0);
             
-            for(int i = 1; i <= n; ++i) {
-                vis[i] = false;
-            }
+            timer++;
             
             for(auto u : euler) {
                 for(auto e : edges[u]) {
@@ -116,23 +131,26 @@ void biconn() {
                     vector<pi> chain;
                     chain.pb(mp(u, v));
                     
-                    if(vis[v]) {
+                    if(vis_time[v] == timer) {
+                        if(vis_time[u] == timer) {
+                            continue;
+                        }
                         comps.pb(chain);
                         int id = comps.size() - 1;
                         add_edge(u, v, id);
                         continue;
                     }
                     
-                    vis[u] = true;
+                    vis_time[u] = timer;
                     
                     while(v != u) {
-                        if(vis[v]) break;
+                        if(vis_time[v] == timer) break;
                         
-                        vis[v] = true;
+                        vis_time[v] = timer;
                         bool found = false;
                         
                         for(auto nx : edges[v]) {
-                            if(!vis[nx.fi] && nx.se == 0) {
+                            if(vis_time[nx.fi] != timer && nx.se == 0) {
                                 chain.pb(mp(v, nx.fi));
                                 v = nx.fi;
                                 found = true;
@@ -192,14 +210,16 @@ void biconn() {
     
     for(int u = 1; u <= n; ++u) {
         for(auto v : g[u]) {
-            if(u < v) {
-                if(!is_proc(u, v)) {
+            if(u < v && !is_proc(u, v)) {
+                if(!is_same_component(u, v)) {
                     vector<pi> single;
                     single.pb(mp(u, v));
                     
                     comps.pb(single);
                     int id = comps.size() - 1;
                     add_edge(u, v, id);
+                } else {
+                    add_edge(u, v, -1);
                 }
             }
         }
@@ -229,10 +249,10 @@ void solve() {
     
     auto begin = std::chrono::high_resolution_clock::now();
     biconn();
-    print();
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
-    cerr << "Time measured in solve: " << elapsed.count() * 1e-9 << " seconds.\n";
+    cout << "Time measured in solve: " << elapsed.count() * 1e-9 << " seconds.\n";
+    print();
 }
 
 signed main() {
