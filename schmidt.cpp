@@ -94,7 +94,7 @@ bool is_proc(int u, int v) {
 }
 
 bool is_same_component(int u, int v) {
-    if(vis_time[u]==vis_time[v]) return true;
+    if(vis_time[u]==vis_time[v] && (vis_time[v]!=0)) return true;
     return false;
 }
 
