@@ -14,7 +14,7 @@ using namespace std;
 const int INF = (int)4e18;
 const int MODa = 1e9 + 7;
 const int MOD = 998244353;
-const int N = 1e6 + 5;
+const int N = 1e7 + 5;
 
 int n, m, tin[N], ans = 0;
 bool vis[N], chain_vis[N];

@@ -5,7 +5,7 @@ using namespace std;
 mt19937_64 RNG(chrono::steady_clock::now().time_since_epoch().count());
 
 const int INF = 1e18;
-const int N = 1e6 + 5;
+const int N = 1e7 + 5;
 vector<int> g[N];
 int disc[N], low[N], timer = 1;
 stack<pair<int, int> > processed_edges;
@@ -79,16 +79,16 @@ void Solve()
     }
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
-    cerr << "Time measured: " << elapsed.count() * 1e-9 << " seconds.\n"; 
 
     cout << "There are " << biconnected_components_list.size() << " biconnected components.\n";
-    for(int i = 0; i < biconnected_components_list.size(); i++) {
-        cout << "Component " << i + 1 << ": ";
-        for(auto &edge: biconnected_components_list[i]) {
-            cout << "(" << edge.first << ", " << edge.second << ") ";
-        }
-        cout << "\n";
-    }
+    cout << "Time measured: " << elapsed.count() * 1e-9 << " seconds.\n"; 
+    // for(int i = 0; i < biconnected_components_list.size(); i++) {
+    //     cout << "Component " << i + 1 << ": ";
+    //     for(auto &edge: biconnected_components_list[i]) {
+    //         cout << "(" << edge.first << ", " << edge.second << ") ";
+    //     }
+    //     cout << "\n";
+    // }
 }
 
 int32_t main() 
