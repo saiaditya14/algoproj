@@ -124,6 +124,10 @@ void biconn() {
                     
                     if(vis_time[v] == timer) {
                         if(vis_time[u] == timer) {
+                            for(auto& e : chain) {
+                                comps[timer-1].pb(e);
+                                add_edge(e.fi, e.se, timer-1);
+                            }
                             continue;
                         }
                         comps.pb(chain);
@@ -210,7 +214,10 @@ void biconn() {
                     int id = comps.size() - 1;
                     add_edge(u, v, id);
                 } else {
-                    add_edge(u, v, -1);
+                    vector<pi> single;
+                    single.pb(mp(u, v));
+                    comps.pb(single);
+                    add_edge(u, v, comps.size()-1);
                 }
             }
         }
