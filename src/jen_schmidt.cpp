@@ -16,13 +16,11 @@ const int MODa = 1e9 + 7;
 const int MOD = 998244353;
 const int N = 1e6 + 5;
 
-int n, m, tin[N], timer = 0, vis_time[N];
-bool vis[N];
+int n, m, tin[N], ans = 0;
+bool vis[N], chain_vis[N];
 vi g[N], euler;
-vector<pi> bicomponents[N];
-vector<pi> edges[N];
-vector<bool> proc[N];
-vector<vector<pi>> comps;
+vector<pair<int, bool>> dir[N];
+unordered_map<int, unordered_set<int>> processed_edges;
 
 int bin_exp(int x, int y) {
     x %= MOD;
@@ -56,183 +54,26 @@ int mult(int a, int b) {
     return (a*b)%MOD;
 }
 
-void dfs(int u, int p) {
-    euler.pb(u);
-    tin[u] = euler.size();
-    vis[u] = true;
-    
-    for(auto v : g[u]) {
-        if(!vis[v]) {
-            edges[v].pb(mp(u, 0));
-            dfs(v, u);
-        }
-        else if(vis[v] && v != p && tin[u] > tin[v]) {
-            edges[v].pb(mp(u, 1));
-        }
-    }
+void mark_edge_processed(int u, int v) {
+    processed_edges[u].insert(v);
+    processed_edges[v].insert(u);
 }
 
-void add_edge(int u, int v, int id) {
-    if(u > v) swap(u, v);
-    
-    while(proc[u].size() <= v - u)
-        proc[u].pb(false);
-    proc[u][v - u] = true;
-    
-    if(id >= 0) {
-        bicomponents[u].pb(mp(v, id));
-        bicomponents[v].pb(mp(u, id));
-    }
+bool is_edge_processed(int u, int v) {
+    return processed_edges[u].find(v) != processed_edges[u].end();
 }
 
-bool is_proc(int u, int v) {
-    if(u > v) swap(u, v);
-    
-    if(proc[u].size() <= v - u)
-        return false;
-    return proc[u][v - u];
-}
-
-bool is_same_component(int u, int v) {
-    if(vis_time[u]==vis_time[v] && (vis_time[v]!=0)) return true;
-    return false;
-}
-
-void biconn() {
-    for(int i = 1; i <= n; ++i) {
-        proc[i].clear();
-        vis_time[i] = 0;
-    }
-    
-    for(int st = 1; st <= n; ++st) {
-        if(!vis[st]) {
-            euler.clear();
-            dfs(st, 0);
-            
-            timer++;
-            
-            for(auto u : euler) {
-                for(auto e : edges[u]) {
-                    if(!e.se) continue;
-                    
-                    int v = e.fi;
-                    
-                    if(is_proc(u, v)) continue;
-                    
-                    vector<pi> chain;
-                    chain.pb(mp(u, v));
-                    
-                    if(vis_time[v] == timer) {
-                        if(vis_time[u] == timer) {
-                            for(auto& e : chain) {
-                                comps[timer-1].pb(e);
-                                add_edge(e.fi, e.se, timer-1);
-                            }
-                            continue;
-                        }
-                        comps.pb(chain);
-                        int id = comps.size() - 1;
-                        add_edge(u, v, id);
-                        continue;
-                    }
-                    
-                    vis_time[u] = timer;
-                    
-                    while(v != u) {
-                        if(vis_time[v] == timer) break;
-                        
-                        vis_time[v] = timer;
-                        bool found = false;
-                        
-                        for(auto nx : edges[v]) {
-                            if(vis_time[nx.fi] != timer && nx.se == 0) {
-                                chain.pb(mp(v, nx.fi));
-                                v = nx.fi;
-                                found = true;
-                                break;
-                            }
-                        }
-                        
-                        if(!found && !edges[v].empty()) {
-                            chain.pb(mp(v, edges[v][0].fi));
-                            v = edges[v][0].fi;
-                        }
-                    }
-                    
-                    if(u == v) {
-                        comps.pb(chain);
-                        int id = comps.size() - 1;
-                        
-                        for(auto& e : chain) {
-                            add_edge(e.fi, e.se, id);
-                        }
-                    } else {
-                        bool added = false;
-                        int target = -1;
-                        
-                        for(auto comp : bicomponents[u]) {
-                            target = comp.se;
-                            added = true;
-                            break;
-                        }
-                        
-                        if(!added) {
-                            for(auto comp : bicomponents[v]) {
-                                target = comp.se;
-                                added = true;
-                                break;
-                            }
-                        }
-                        
-                        if(added) {
-                            for(auto& e : chain) {
-                                comps[target].pb(e);
-                                add_edge(e.fi, e.se, target);
-                            }
-                        } else {
-                            comps.pb(chain);
-                            int id = comps.size() - 1;
-                            
-                            for(auto& e : chain) {
-                                add_edge(e.fi, e.se, id);
-                            }
-                        }
-                    }
-                }
-            }
+void dfs(int node, int par) {
+    euler.pb(node);
+    tin[node] = euler.size();
+    vis[node] = true;
+    for(auto k : g[node]) {
+        if(!vis[k]) {
+            dir[k].pb({node, 0});
+            dfs(k, node);
         }
-    }
-    
-    for(int u = 1; u <= n; ++u) {
-        for(auto v : g[u]) {
-            if(u < v && !is_proc(u, v)) {
-                if(!is_same_component(u, v)) {
-                    vector<pi> single;
-                    single.pb(mp(u, v));
-                    
-                    comps.pb(single);
-                    int id = comps.size() - 1;
-                    add_edge(u, v, id);
-                } else {
-                    vector<pi> single;
-                    single.pb(mp(u, v));
-                    comps.pb(single);
-                    add_edge(u, v, comps.size()-1);
-                }
-            }
-        }
-    }
-}
-
-void print() {
-    cout << "Number of biconnected components: " << comps.size() << endl;
-    
-    for(int i = 0; i < comps.size(); ++i) {
-        cout << "Component " << i+1 << ": ";
-        for(auto& e : comps[i]) {
-            cout << "(" << e.fi << "," << e.se << ") ";
-        }
-        cout << endl;
+        else if(vis[k] && k != par && tin[node] > tin[k])
+            dir[k].pb({node, 1});
     }
 }
 
@@ -246,27 +87,94 @@ void solve() {
     }
     
     auto begin = std::chrono::high_resolution_clock::now();
-    biconn();
+    
+    for(int i = 1; i <= n; ++i) {
+        if(!vis[i]) {
+            dfs(i, 0);
+        }
+    }
+    
+    for(int i = 1; i <= n; ++i) {
+        vis[i] = false;
+    }
+    
+    for(auto k : euler) {
+        for(auto p : dir[k]) {
+            if(!p.se) continue;
+            
+            int v = p.fi;
+            if(is_edge_processed(k, v)) continue;
+            
+            vector<int> chain;
+            chain.pb(k);
+            
+            bool dont = false;
+            if(chain_vis[v]) {
+                chain.pb(v);
+                dont = true;
+            }
+            
+            chain_vis[k] = true;
+            mark_edge_processed(k, v);
+            
+            while(v != k) {
+                if(chain_vis[v]) break;
+                chain.pb(v);
+                chain_vis[v] = true;
+                
+                bool moved = false;
+                for(auto dest : dir[v]) {
+                    if(!chain_vis[dest.fi] && dest.se == 0 && !is_edge_processed(v, dest.fi)) {
+                        mark_edge_processed(v, dest.fi);
+                        v = dest.fi;
+                        moved = true;
+                        break;
+                    }
+                }
+                
+                if(!moved && !dir[v].empty()) {
+                    int next_v = dir[v][0].fi;
+                    if(!is_edge_processed(v, next_v)) {
+                        mark_edge_processed(v, next_v);
+                        v = next_v;
+                        moved = true;
+                    }
+                }
+                
+                if(!moved) break;
+            }
+            
+            if(!dont) {
+                chain.pb(v);
+            }
+            
+            if(chain[0] == chain[chain.size() - 1]) {
+                ans++;
+            }
+        }
+    }
+    
+    for(int u = 1; u <= n; ++u) {
+        for(auto v : g[u]) {
+            if(u < v && !is_edge_processed(u, v)) {
+                ans++;
+                mark_edge_processed(u, v);
+            }
+        }
+    }
+    
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+    cout << "There are " << ans << " biconnected components.\n";
     cout << "Time measured in solve: " << elapsed.count() * 1e-9 << " seconds.\n";
-    print();
 }
 
 signed main() {
     ios::sync_with_stdio(0);
     cin.tie(0);
     int t = 1;
-    //cin >> t;
-    auto begin = std::chrono::high_resolution_clock::now();
-
     while (t--) {
         solve();
     }
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
-    cerr << "Total time measured: " << elapsed.count() * 1e-9 << " seconds.\n";
-    
     return 0;
 }
