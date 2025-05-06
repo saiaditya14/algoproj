@@ -81,7 +81,6 @@ void Solve()
     auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
     cout << "There are " << biconnected_components_list.size() << " biconnected components.\n";
-    cout << "Time measured: " << elapsed.count() * 1e-9 << " seconds.\n"; 
     // for(int i = 0; i < biconnected_components_list.size(); i++) {
     //     cout << "Component " << i + 1 << ": ";
     //     for(auto &edge: biconnected_components_list[i]) {
@@ -89,6 +88,7 @@ void Solve()
     //     }
     //     cout << "\n";
     // }
+    cout << "Time measured: " << elapsed.count() * 1e-9 << " seconds.\n"; 
 }
 
 int32_t main() 

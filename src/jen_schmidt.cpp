@@ -1,6 +1,9 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+#pragma GCC optimize("O3,unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+
 #define int long long
 #define pb push_back
 #define fi first
